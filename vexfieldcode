@@ -3,19 +3,10 @@ from vex import *
 import urandom
 
 # ------------------------
-# Code by Eric & Peter (mostly Eric)
-# Team 75477M 'Frij'
+# Code used by Ali
+# Team 39255 'CIBEE
 # Over Under 2023-2024
 # ------------------------
-
-# Wiring Guide
-# - drivetrain: left a: #1;  left b: #11;  left c: #12;  right a: #10;  right b: #19  right c: #21;
-# - puncher: #4, #14
-# - inertial sensor: #3
-# - gps sensor: #8
-# - optial sensor: #7
-# - wings: a; blocker: c
-
 
 # Brain
 brain = Brain()
@@ -34,39 +25,26 @@ right_motor_b = Motor(Ports.PORT21, GearSetting.RATIO_6_1, False)
 right_motor_c = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
 right_drive_smart = MotorGroup(right_motor_a, right_motor_b, right_motor_c)
 
-puncher_a = Motor(Ports.PORT4, GearSetting.RATIO_36_1, True)
-puncher_b = Motor(Ports.PORT14, GearSetting.RATIO_36_1, False)
-puncher = MotorGroup(puncher_a, puncher_b)
-
 # Sensor
 inertial = Inertial(Ports.PORT2)
-gps = Gps(Ports.PORT8, -120.00, -125.00, MM, -95) #- x-offset, y-offset, angle offset
 optical = Optical(Ports.PORT7)
 
 # Drivetrain
 drivetrain = DriveTrain(left_drive_smart, right_drive_smart, 299.24, 260, 230, MM, 0.6)
 
-# Pneumatics
-wings = DigitalOut(brain.three_wire_port.a)
-blocker = DigitalOut(brain.three_wire_port.c)
-# Pre-set variables
+
+# Pre-setted variables
 left_drive_smart_stopped = 0
 right_drive_smart_stopped = 0
 left_drive_smart_speed = 0
 right_drive_smart_speed = 0
 
-puncher.set_position(0,DEGREES)
-puncher.set_velocity(100, PERCENT)
 inertial.calibrate()
 gps.calibrate()
 inertial.set_heading(0, DEGREES)
 sensor_status = 0
 matchload = 0
-wings_status = 0
-blocker_status = 0
 
-wings.set(False)
-blocker.set(blocker_status)
 
 brain.screen.draw_image_from_file("begin.png", 0, 4)
 team_position = " "
