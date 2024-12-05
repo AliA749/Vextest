@@ -7,14 +7,13 @@ brain=Brain()
 
 # Robot configuration code
 controller_1 = Controller(PRIMARY)
-PLCHolderVision = Optical(Ports.PORT13)
-distance_10 = Distance(Ports.PORT10)
-FBL12_motor_a = Motor(Ports.PORT11, GearSetting.RATIO_18_1, False)
-FBL12_motor_b = Motor(Ports.PORT12, GearSetting.RATIO_18_1, False)
-FBL12 = MotorGroup(FBL12_motor_a, FBL12_motor_b)
-FBR12_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
-FBR12_motor_b = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
-FBR12 = MotorGroup(FBR12_motor_a, FBR12_motor_b)
+MV1 = Optical(Ports.PORT1)
+DS2 = Distance(Ports.PORT2)
+LV3 = Optical(Ports.PORT3)
+RV4 = Optical(Ports.PORT4)
+Motors_motor_a = Motor(Ports.PORT9, GearSetting.RATIO_18_1, False)
+Motors_motor_b = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
+Motors = MotorGroup(Motors_motor_a, Motors_motor_b)
 
 
 # wait for rotation sensor to fully initialize
@@ -62,54 +61,64 @@ def pre_autonomous():
     # actions to do when the program starts
     brain.screen.clear_screen()
     brain.screen.print("pre auton code")
-    autonomous();
+    autonomous()
     controller_1.buttonB.pressed(user_control)
     
 
 def autonomous():
+    brain.screen.clear_row(1)
+    brain.screen.next_row()
     brain.screen.print("autonomous code")
-    t = time.time() + 15;
+    t = time.time() + 15
     while time.time() < t:
-        clr = PLCHolderVision.color()
-        dist = distance_10.object_distance(MM)
-        if clr == Color.RED:#replace red with team color
-            #if distance far then move
-            if dist <200:#replace 200 with an actual number when conveyer is done
-                brain.screen.print("grab");#replace with actual grab function
-            else:
-                move(FORWARD,FORWARD);
+        clrRight = RV4.color()
+        clrMid = MV1.color()
+        clrLeft = LV3.color()
+        dist = DS2.object_distance(INCHES)
+        move(FORWARD, FORWARD)
+        wait(0.002,SECONDS)
+        if dist<=20:
+            move(REVERSE, FORWARD)
+            wait(0.02,SECONDS)
+            Motors.stop()
+            if dist<=1.5:
+                move(REVERSE, REVERSE)
+                wait(0.8,SECONDS)
+                Motors.stop()
         else:
-            #find closer side left/right
-            clrL = PLCHolderVision.color() #left side color sense
-            clrR = PLCHolderVision.color() #right side color sense
-            #if left closer:
-            if clrL == Color.RED:
-                if clrR
-                dist = distance_10.object_distance(MM)#Left side dist sense
+            Motors.stop()
+            #if clrLeft == Color.RED and LV3.is_near_object()==True:
+                #brain.screen.clear_row()
+                #brain.screen.next_row()
+                #brain.screen.print("Move Left");
+                #move(REVERSE,FORWARD);
+            #elif clrRight == Color.RED and RV4.is_near_object()==True:
+                #brain.screen.clear_row()
+                #brain.screen.next_row()
+                #brain.screen.print("Move Right");
                 
-            move(REVERSE,FORWARD);
+                #move(REVERSE,FORWARD);
             #else:
-            move(FORWARD,REVERSE);
+                #move(FORWARD,REVERSE);
 
 def move(L,R):
-    FBL12.set_velocity(50,PERCENT)
-    FBR12.set_velocity(50,PERCENT)
-    FBL12.spin(L)
-    FBR12.spin(R)
-    wait(.5,SECONDS)
-    FBL12.stop()
-    FBR12.stop()
+    Motors.set_velocity(80,PERCENT)
+    Motors_motor_a.spin(L)
+    Motors_motor_b.spin(R)
+    if Motors_motor_a.temperature(PERCENT)>=60 or Motors_motor_b.temperature(PERCENT) >=60:
+        Motors.set_velocity(45,PERCENT)
+    
 
 def user_control():
     brain.screen.print("user")
     # place driver control in this while loop
     while True:
-        FBL12.set_velocity(controller_1.axis1.position(),PERCENT)
-        FBR12.set_velocity(controller_1.axis1.position(),PERCENT)
-        FBL12.spin(FORWARD)
-        FBR12.spin(FORWARD)
+        Motors_motor_a.set_velocity(controller_1.axis2.position(),PERCENT)
+        Motors_motor_b.set_velocity(controller_1.axis3.position(),PERCENT)
+        Motors_motor_a.spin(FORWARD)
+        Motors_motor_b.spin(FORWARD)
     
 
 # create competition instance
-#comp = Competition(user_control, autonomous)
+competition = Competition(user_control, autonomous)
 pre_autonomous()
