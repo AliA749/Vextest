@@ -9,11 +9,11 @@ brain=Brain()
 controller_1 = Controller(PRIMARY)
 MV1 = Optical(Ports.PORT1)
 DS2 = Distance(Ports.PORT2)
-LV3 = Optical(Ports.PORT3)
-RV4 = Optical(Ports.PORT4)
 Motors_motor_a = Motor(Ports.PORT9, GearSetting.RATIO_18_1, False)
 Motors_motor_b = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
 Motors = MotorGroup(Motors_motor_a, Motors_motor_b)
+VisionLeft = Distance(Ports.PORT3)
+VisionRight = Distance(Ports.PORT4)
 
 
 # wait for rotation sensor to fully initialize
@@ -71,19 +71,35 @@ def autonomous():
     brain.screen.print("autonomous code")
     t = time.time() + 15
     while time.time() < t:
-        clrRight = RV4.color()
+        visionRight = VisionRight.object_distance(INCHES)
         clrMid = MV1.color()
-        clrLeft = LV3.color()
+        visionLeft = VisionLeft.object_distance(INCHES)
         dist = DS2.object_distance(INCHES)
         move(FORWARD, FORWARD)
-        wait(0.002,SECONDS)
-        if dist<=20:
-            move(REVERSE, FORWARD)
-            wait(0.02,SECONDS)
+        wait(0.02,SECONDS)
+        if dist<=5:
+            move(REVERSE, REVERSE)
+            wait(0.3,SECONDS)
             Motors.stop()
             if dist<=1.5:
                 move(REVERSE, REVERSE)
-                wait(0.8,SECONDS)
+                wait(0.5,SECONDS)
+                Motors.stop()
+        elif visionLeft <=15:
+            move(FORWARD,REVERSE)
+            wait(0.02,SECONDS)
+            Motors.stop()
+            if visionLeft<=1.5:
+                move(REVERSE,REVERSE)
+                wait(0.2,SECONDS)
+                Motors.stop()
+        elif visionRight<=15:
+            move(REVERSE,FORWARD)
+            wait(0.02,SECONDS)
+            Motors.stop()
+            if visionRight<=1.5:
+                move(REVERSE,REVERSE)
+                wait(0.2,SECONDS)
                 Motors.stop()
         else:
             Motors.stop()
@@ -100,6 +116,8 @@ def autonomous():
                 #move(REVERSE,FORWARD);
             #else:
                 #move(FORWARD,REVERSE);
+
+            
 
 def move(L,R):
     Motors.set_velocity(80,PERCENT)
